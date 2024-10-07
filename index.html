@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Force-Directed Graph</title>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+		<style>
+			.node {
+				stroke: #fff;
+				stroke-width: 1.5px;
+			}
+			.node text {
+				pointer-events: none;
+				font-size: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<svg width="800" height="600"></svg>
+
+		<script>
+			const width = 800;
+			const height = 600;
+
+			// Define colors based on node type
+			const color = d3
+				.scaleOrdinal()
+				.domain([
+					"pin",
+					"name",
+					"phone",
+					"billing_country",
+					"shipping_country",
+					"zip_code",
+					"email_domain",
+					"payment",
+				])
+				.range([
+					"#FF6F61", // pin - Coral Red
+					"#6B5B95", // name - Royal Purple
+					"#88B04B", // phone - Soft Green
+					"#F7CAC9", // billing_country - Pale Pink
+					"#92A8D1", // shipping_country - Cool Blue
+					"#F7786B", // zip_code - Warm Salmon
+					"#DE6E4B", // email_domain - Burnt Orange
+					"#45B8AC", // payment - Turquoise
+				]);
+
+			// Example graph data
+			const nodes = [
+				{ type: "pin", id: "pin1", value: "PIN1234" },
+				{ type: "name", id: "name1", value: "John Doe" },
+				{ type: "name", id: "name2", value: "Jane Smith" },
+				{ type: "name", id: "name3", value: "Alice Johnson" },
+				{ type: "name", id: "name4", value: "Michael Brown" },
+				{ type: "name", id: "name5", value: "Emily Clark" },
+				{ type: "phone", id: "phone1", value: "9821212242" },
+				{ type: "phone", id: "phone2", value: "9821212233" },
+				{ type: "phone", id: "phone3", value: "9821212211" },
+				{ type: "phone", id: "phone4", value: "9821212299" },
+				{ type: "phone", id: "phone5", value: "9821234567" },
+				{ type: "email", id: "email1", value: "john.doe@gmail.com" },
+				{ type: "email", id: "email2", value: "jane.smith@yahoo.com" },
+				{ type: "email", id: "email3", value: "alice.johnson@outlook.com" },
+				{ type: "email", id: "email4", value: "michael.brown@gmail.com" },
+				{ type: "email", id: "email5", value: "emily.clark@gmail.com" },
+				{ type: "billing_country", id: "billing_country1", value: "USA" },
+				{ type: "billing_country", id: "billing_country2", value: "India" },
+				{ type: "billing_country", id: "billing_country3", value: "Canada" },
+				{ type: "billing_country", id: "billing_country4", value: "Australia" },
+				{ type: "billing_country", id: "billing_country5", value: "UK" },
+				{ type: "shipping_country", id: "shipping_country1", value: "Germany" },
+				{ type: "shipping_country", id: "shipping_country2", value: "USA" },
+				{ type: "shipping_country", id: "shipping_country3", value: "India" },
+				{ type: "shipping_country", id: "shipping_country4", value: "Canada" },
+				{ type: "shipping_country", id: "shipping_country5", value: "UK" },
+				{ type: "zip_code", id: "zip_code1", value: "ZIP12345" },
+				{ type: "zip_code", id: "zip_code2", value: "ZIP54321" },
+				{ type: "zip_code", id: "zip_code3", value: "ZIP98765" },
+				{ type: "zip_code", id: "zip_code4", value: "ZIP45678" },
+				{ type: "zip_code", id: "zip_code5", value: "ZIP65432" },
+				{ type: "email_domain", id: "email_domain1", value: "gmail.com" },
+				{ type: "email_domain", id: "email_domain2", value: "yahoo.com" },
+				{ type: "email_domain", id: "email_domain3", value: "outlook.com" },
+				{ type: "email_domain", id: "email_domain4", value: "hotmail.com" },
+				{ type: "email_domain", id: "email_domain5", value: "protonmail.com" },
+				{ type: "payment", id: "payment1", value: "credit_card" },
+				{ type: "payment", id: "payment2", value: "paypal" },
+				{ type: "payment", id: "payment3", value: "bank_transfer" },
+				{ type: "payment", id: "payment4", value: "crypto" },
+				{ type: "payment", id: "payment5", value: "apple_pay" },
+			];
+
+			const links = [
+				{ source: "pin1", target: "name1" },
+				{ source: "pin1", target: "name2" },
+				{ source: "pin1", target: "name3" },
+				{ source: "pin1", target: "name4" },
+				{ source: "pin1", target: "name5" },
+				{ source: "name1", target: "phone1" },
+				{ source: "name1", target: "email1" },
+				{ source: "name2", target: "phone2" },
+				{ source: "name2", target: "phone1" },
+				{ source: "name2", target: "email2" },
+				{ source: "name3", target: "phone3" },
+				{ source: "name3", target: "email3" },
+				{ source: "name4", target: "phone4" },
+				{ source: "name4", target: "phone5" },
+				{ source: "name4", target: "email4" },
+				{ source: "name5", target: "phone5" },
+				{ source: "name5", target: "email5" },
+				{ source: "phone1", target: "billing_country1" },
+				{ source: "email1", target: "billing_country1" },
+				{ source: "phone2", target: "billing_country2" },
+				{ source: "email2", target: "billing_country2" },
+				{ source: "phone3", target: "billing_country3" },
+				{ source: "email3", target: "billing_country3" },
+				{ source: "phone4", target: "billing_country4" },
+				{ source: "email4", target: "billing_country4" },
+				{ source: "phone5", target: "billing_country5" },
+				{ source: "email5", target: "billing_country5" },
+				{ source: "phone1", target: "shipping_country1" },
+				{ source: "email1", target: "shipping_country1" },
+				{ source: "phone2", target: "shipping_country2" },
+				{ source: "email2", target: "shipping_country2" },
+				{ source: "phone3", target: "shipping_country3" },
+				{ source: "email3", target: "shipping_country3" },
+				{ source: "phone4", target: "shipping_country4" },
+				{ source: "email4", target: "shipping_country4" },
+				{ source: "phone5", target: "shipping_country5" },
+				{ source: "email5", target: "shipping_country5" },
+				{ source: "billing_country1", target: "zip_code1" },
+				{ source: "shipping_country1", target: "zip_code1" },
+				{ source: "billing_country2", target: "zip_code2" },
+				{ source: "shipping_country2", target: "zip_code2" },
+				{ source: "billing_country3", target: "zip_code3" },
+				{ source: "shipping_country3", target: "zip_code3" },
+				{ source: "billing_country4", target: "zip_code4" },
+				{ source: "shipping_country4", target: "zip_code4" },
+				{ source: "billing_country5", target: "zip_code5" },
+				{ source: "shipping_country5", target: "zip_code5" },
+				{ source: "zip_code1", target: "email_domain1" },
+				{ source: "email_domain1", target: "payment1" },
+				{ source: "zip_code2", target: "email_domain2" },
+				{ source: "email_domain2", target: "payment2" },
+				{ source: "zip_code3", target: "email_domain3" },
+				{ source: "email_domain3", target: "payment3" },
+				{ source: "zip_code4", target: "email_domain4" },
+				{ source: "email_domain4", target: "payment4" },
+				{ source: "zip_code5", target: "email_domain5" },
+				{ source: "email_domain5", target: "payment5" },
+			];
+			const graph = {
+				links: links,
+				nodes: nodes,
+			};
+
+			// Create simulation with force
+			const simulation = d3
+				.forceSimulation(graph.nodes)
+				.force(
+					"link",
+					d3
+						.forceLink(graph.links)
+						.id((d) => d.id)
+						.distance(10)
+				)
+				.force("charge", d3.forceManyBody().strength(-50))
+				.force("center", d3.forceCenter(width / 2, height / 2))
+				.force(
+					"collision",
+					d3.forceCollide().radius((d) => d.r + 10)
+				)
+				.on("tick", ticked);
+
+			const svg = d3.select("svg");
+
+			// Add links (lines between nodes)
+			const link = svg
+				.append("g")
+				.selectAll("line")
+				.data(graph.links)
+				.join("line")
+				.attr("stroke-width", 2)
+				.attr("stroke", "#aaa");
+
+			// Add nodes
+			const node = svg
+				.append("g")
+				.selectAll("circle")
+				.data(graph.nodes)
+				.join("circle")
+				.attr("r", 8) // initial radius is 5px
+				.attr("fill", (d) => color(d.type))
+				.attr("class", "node")
+				.call(
+					d3.drag().on("start", dragStarted).on("drag", dragged).on("end", dragEnded)
+				)
+				.on("click", nodeClick); // Add click event
+
+			// Add text to nodes
+			const nodeText = svg
+				.append("g")
+				.selectAll("text")
+				.data(graph.nodes)
+				.join("text")
+				.attr("text-anchor", "middle") // Center the text
+				.attr("dy", ".35em") // Vertical alignment
+				.attr("visibility", "hidden") // Hide initially
+				.style("font-size", "10px") // Smaller font size
+				.text((d) => {
+					if (d.value.length > 10) {
+						return d.value.slice(0, 8) + "..."; // Truncate long text
+					}
+					return d.value;
+				});
+
+			function ticked() {
+				link
+					.attr("x1", (d) => d.source.x)
+					.attr("y1", (d) => d.source.y)
+					.attr("x2", (d) => d.target.x)
+					.attr("y2", (d) => d.target.y);
+
+				node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+
+				nodeText.attr("x", (d) => d.x).attr("y", (d) => d.y);
+
+				nodes.forEach((d) => {
+					d.x = Math.max(40, Math.min(width - 40, d.x)); // 20 is the radius of the node
+					d.y = Math.max(40, Math.min(height - 40, d.y));
+				});
+			}
+
+			// Handle click event for nodes
+			function nodeClick(event, clickedNode) {
+				const connectedNodes = new Set();
+
+				// Get connected nodes
+				graph.links.forEach((link) => {
+					if (link.source === clickedNode) connectedNodes.add(link.target);
+					if (link.target === clickedNode) connectedNodes.add(link.source);
+				});
+
+				// Enlarge the clicked node and connected nodes
+				node
+					.transition()
+					.duration(500)
+					.attr("r", (d) => {
+						if (d === clickedNode) return 35;
+						if (connectedNodes.has(d)) return 25;
+						return 8;
+					});
+
+				nodeText
+					.transition()
+					.duration(500)
+					.attr("visibility", (d) =>
+						connectedNodes.has(d) || d === clickedNode ? "visible" : "hidden"
+					)
+					.style("font-size", (d) => (d === clickedNode ? "14px" : "10px"));
+
+				// Adjust the spacing for connected nodes
+				simulation.force("link").distance((d) => {
+					if (d.source === clickedNode || d.target === clickedNode) {
+						return 40;
+					}
+					return 10;
+				});
+
+				// Update collision force to account for larger radius nodes
+				simulation.force(
+					"collision",
+					d3
+						.forceCollide()
+						.radius((d) => (connectedNodes.has(d) || d === clickedNode ? 40 : 10))
+				);
+
+				simulation.alpha(1).restart(); // Restart simulation for smooth movement
+			}
+
+			function dragStarted(event, d) {
+				if (!event.active) simulation.alphaTarget(0.3).restart();
+				d.fx = d.x;
+				d.fy = d.y;
+			}
+
+			function dragged(event, d) {
+				d.fx = event.x;
+				d.fy = event.y;
+			}
+
+			function dragEnded(event, d) {
+				if (!event.active) simulation.alphaTarget(0);
+				d.fx = null;
+				d.fy = null;
+			}
+		</script>
+	</body>
+</html>
