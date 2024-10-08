@@ -233,6 +233,13 @@
 				});
 			}
 
+			svg
+				.selectAll("circle")
+				.filter((d) => d.id === "pin1")
+				.each(function (d) {
+					nodeClick(null, d); // Programmatically trigger the click event for "pin1"
+				});
+
 			// Handle click event for nodes
 			function nodeClick(event, clickedNode) {
 				const connectedNodes = new Set();
